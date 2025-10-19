@@ -7,7 +7,8 @@ from datetime import datetime
 
 # Configuration
 PORT = 8000
-HTML_FILE = "/home/root/index.html"
+HTML_FILE = "index.html"
+SVG_FILE = "favicon.svg"
 DEVICE_FILE = "/sys/bus/w1/devices/28-000001cda180/w1_slave"
 UPDATE_INTERVAL = 10  # Update HTML every 1 second
 CURRENT_DATE="---"
@@ -39,8 +40,10 @@ def generate_html(temp):
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>FrambOS Temperature</title>
+    <title>{formatted_temp} at {CURRENT_DATE} on FrambOS</title>
 	<meta http-equiv="refresh" content="10"> 
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body>
     <h1>Temperature on FrambOS</h1>
@@ -50,6 +53,13 @@ On FrambOS right now, the date is {CURRENT_DATE} and the temperature is {formatt
     """
     with open(HTML_FILE, 'w') as f:
         f.write(html_content)
+    svg_content = f"""
+<svg height="32" width="32" xmlns="http://www.w3.org/2000/svg">
+  <text x="0" y="24" fill="red">{formatted_temp[:5]}</text>
+</svg>
+    """
+    with open(SVG_FILE, 'w') as f:
+        f.write(svg_content)
 
 def update_html():
     while True:
@@ -59,7 +69,6 @@ def update_html():
         time.sleep(UPDATE_INTERVAL)
 
 def start_server():
-    os.chdir("/home/root")  # Serve from /home/root
     Handler = http.server.SimpleHTTPRequestHandler
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
